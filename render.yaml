@@ -1,10 +1,8 @@
+# render.yaml
 services:
   - type: web
     name: todo-app
     env: python
-    buildCommand: |
-      pip install -r requirements.txt
-      python manage.py collectstatic --noinput
     startCommand: gunicorn todo.wsgi:application --bind 0.0.0.0:$PORT
     plan: free
     envVars:
@@ -14,3 +12,5 @@ services:
         value: "False"
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
+
+    # ... বাকি settings
