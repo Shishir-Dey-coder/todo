@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Task | To-Do List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #6c63ff 0%, #4cd3c2 100%);
+      --secondary-gradient: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+      --card-bg: rgba(255, 255, 255, 0.98);
+      --text-dark: #2d3436;
+      --text-light: #636e72;
+      --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.05);
+      --shadow-medium: 0 15px 40px rgba(108, 99, 255, 0.12);
+      --shadow-hard: 0 20px 50px rgba(108, 99, 255, 0.15);
+      --border-radius: 20px;
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', 'Inter', Arial, sans-serif;
+      background: linear-gradient(135deg, #f0f4ff 0%, #e6f7ff 50%, #f0f8ff 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated background elements */
+    .bg-element {
+      position: fixed;
+      border-radius: 50%;
+      z-index: 0;
+      opacity: 0.4;
+      filter: blur(40px);
+    }
+
+    .bg-1 {
+      width: 300px;
+      height: 300px;
+      background: #6c63ff;
+      top: -100px;
+      right: -100px;
+    }
+
+    .bg-2 {
+      width: 250px;
+      height: 250px;
+      background: #4cd3c2;
+      bottom: -80px;
+      left: -80px;
+    }
+
+    /* Main container */
+    .container {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 500px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-medium);
+      padding: 50px 40px;
+      position: relative;
+      z-index: 1;
+      animation: fadeInUp 0.8s ease-out;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: var(--primary-gradient);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header-icon {
+      font-size: 60px;
+      color: #6c63ff;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+      filter: drop-shadow(0 4px 8px rgba(108, 99, 255, 0.3));
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .header h2 {
+      font-size: 32px;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: var(--text-light);
+      font-size: 16px;
+      max-width: 400px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Messages */
+    .messages {
+      margin-bottom: 25px;
+    }
+
+    .message {
+      padding: 14px 20px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      font-weight: 500;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideIn 0.5s ease-out;
+      transform-origin: top;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.success {
+      background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+      color: #00695c;
+      border-left: 5px solid #00bfa5;
+    }
+
+    .message.error {
+      background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+      color: #c62828;
+      border-left: 5px solid #f44336;
+    }
+
+    /* Form */
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    /* Form Group */
+    .form-group {
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group label i {
+      color: #6c63ff;
+    }
+
+    /* Input Field */
+    .input-field {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e0e7ff;
+      border-radius: 15px;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+      transition: var(--transition);
+      background: #f8f9ff;
+      color: var(--text-dark);
+      box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.02),
+                  inset -3px -3px 6px rgba(255, 255, 255, 0.8);
+    }
+
+    .input-field:focus {
+      border-color: #6c63ff;
+      box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.15),
+                  inset 3px 3px 6px rgba(0, 0, 0, 0.02);
+      outline: none;
+      background: white;
+    }
+
+    .input-field::placeholder {
+      color: #a5b1c2;
+    }
+
+    /* Checkbox */
+    .checkbox-field {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 20px;
+      background: #f8fffe;
+      border-radius: 15px;
+      border: 2px solid #e0f7f4;
+      transition: var(--transition);
+    }
+
+    .checkbox-field:hover {
+      background: #f0fffc;
+      border-color: #4cd3c2;
+    }
+
+    .checkbox-field input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid #4cd3c2;
+      appearance: none;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .checkbox-field input[type="checkbox"]:checked {
+      background: #4cd3c2;
+    }
+
+    .checkbox-field input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .checkbox-field label {
+      font-weight: 600;
+      color: #00695c;
+      cursor: pointer;
+      margin: 0;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-field label i {
+      color: #4cd3c2;
+    }
+
+    /* Buttons */
+    .buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 16px 30px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 15px;
+      cursor: pointer;
+      border: none;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 150px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-save {
+      background: var(--primary-gradient);
+      color: white;
+      box-shadow: 0 6px 20px rgba(108, 99, 255, 0.3);
+    }
+
+    .btn-save:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hard);
+    }
+
+    .btn-cancel {
+      background: #f8f9ff;
+      color: #6c63ff;
+      border: 2px solid #e0e7ff;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .btn-cancel:hover {
+      background: #f0f4ff;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(108, 99, 255, 0.15);
+    }
+
+    /* Character counter */
+    .char-counter {
+      text-align: right;
+      font-size: 14px;
+      color: var(--text-light);
+      margin-top: 8px;
+    }
+
+    .char-counter.warning {
+      color: #ff9800;
+    }
+
+    .char-counter.error {
+      color: #f44336;
+    }
+
+    /* Task Preview */
+    .task-preview {
+      background: #f8f9ff;
+      padding: 20px;
+      border-radius: 15px;
+      margin-top: 20px;
+      border: 2px dashed #e0e7ff;
+    }
+
+    .task-preview h4 {
+      color: var(--text-dark);
+      margin-bottom: 15px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .preview-content {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .preview-checkbox {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #6c63ff;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .preview-checkbox.checked {
+      background: #4cd3c2;
+      border-color: #4cd3c2;
+    }
+
+    .preview-checkbox.checked i {
+      color: white;
+      font-size: 12px;
+    }
+
+    .preview-text {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-dark);
+    }
+
+    .preview-text.completed {
+      color: #888;
+      text-decoration: line-through;
+    }
+
+    /* Footer note */
+    .footer-note {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px dashed #e0e7ff;
+      color: var(--text-light);
+      font-size: 14px;
+      font-style: italic;
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+      .container {
+        padding: 40px 25px;
+      }
+      
+      .header h2 {
+        font-size: 28px;
+      }
+      
+      .header-icon {
+        font-size: 50px;
+      }
+      
+      .buttons {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .container {
+        padding: 30px 20px;
+      }
+      
+      .header h2 {
+        font-size: 24px;
+      }
+      
+      .checkbox-field {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background elements -->
+  <div class="bg-element bg-1"></div>
+  <div class="bg-element bg-2"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon">
+        <i class="fas fa-edit"></i>
+      </div>
+      <h2>Edit Task</h2>
+      <p>Update your task details below. Changes will be saved immediately when you submit.</p>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">
+            <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="POST">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="id_title"><i class="fas fa-heading"></i> Task Title</label>
+        <input 
+          type="text" 
+          name="title" 
+          id="id_title" 
+          class="input-field" 
+          value="{{ form.title.value|default:'' }}"
+          placeholder="What needs to be done?"
+          maxlength="200"
+          required
+        >
+        <div class="char-counter" id="charCounter">
+          <span id="charCount">0</span>/200 characters
+        </div>
+      </div>
+
+      <div class="checkbox-field">
+        <input 
+          type="checkbox" 
+          name="completed" 
+          id="id_completed" 
+          {% if form.completed.value %}checked{% endif %}
+        >
+        <label for="id_completed">
+          <i class="fas fa-check-circle"></i> Mark as Completed
+        </label>
+      </div>
+
+      <!-- Task Preview -->
+      <div class="task-preview">
+        <h4><i class="fas fa-eye"></i> Preview</h4>
+        <div class="preview-content">
+          <div class="preview-checkbox {% if form.completed.value %}checked{% endif %}" id="previewCheckbox">
+            {% if form.completed.value %}<i class="fas fa-check"></i>{% endif %}
+          </div>
+          <div class="preview-text {% if form.completed.value %}completed{% endif %}" id="previewText">
+            {% if form.title.value %}
+              {{ form.title.value }}
+            {% else %}
+              Your task will appear here...
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="buttons">
+        <button type="submit" class="btn btn-save">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+        <a href="{% url 'index' %}" class="btn btn-cancel">
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </form>
+
+    <div class="footer-note">
+      <i class="fas fa-info-circle"></i> You can always come back and edit your tasks later.
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get DOM elements
+      const titleInput = document.getElementById('id_title');
+      const completedCheckbox = document.getElementById('id_completed');
+      const charCounter = document.getElementById('charCounter');
+      const charCount = document.getElementById('charCount');
+      const previewText = document.getElementById('previewText');
+      const previewCheckbox = document.getElementById('previewCheckbox');
+      const saveButton = document.querySelector('.btn-save');
+      
+      // Update character counter
+      function updateCharCounter() {
+        const length = titleInput.value.length;
+        charCount.textContent = length;
+        
+        // Update counter color based on length
+        charCounter.className = 'char-counter';
+        if (length > 180) {
+          charCounter.classList.add('warning');
+        }
+        if (length > 195) {
+          charCounter.classList.add('error');
+        }
+      }
+      
+      // Update preview in real-time
+      function updatePreview() {
+        previewText.textContent = titleInput.value || 'Your task will appear here...';
+        
+        // Update completion status
+        if (completedCheckbox.checked) {
+          previewText.classList.add('completed');
+          previewCheckbox.classList.add('checked');
+          previewCheckbox.innerHTML = '<i class="fas fa-check"></i>';
+        } else {
+          previewText.classList.remove('completed');
+          previewCheckbox.classList.remove('checked');
+          previewCheckbox.innerHTML = '';
+        }
+      }
+      
+      // Form submission animation
+      const form = document.querySelector('form');
+      form.addEventListener('submit', function(e) {
+        if (titleInput.value.trim() === '') {
+          e.preventDefault();
+          titleInput.style.borderColor = '#f44336';
+          titleInput.style.boxShadow = '0 0 0 4px rgba(244, 67, 54, 0.15)';
+          return;
+        }
+        
+        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        saveButton.disabled = true;
+      });
+      
+      // Event listeners
+      titleInput.addEventListener('input', function() {
+        updateCharCounter();
+        updatePreview();
+        
+        // Reset error state
+        this.style.borderColor = '';
+        this.style.boxShadow = '';
+      });
+      
+      completedCheckbox.addEventListener('change', updatePreview);
+      
+      // Initialize
+      updateCharCounter();
+      updatePreview();
+      
+      // Focus on title input
+      titleInput.focus();
+      titleInput.select();
+      
+      // Add animation on focus
+      titleInput.addEventListener('focus', function() {
+        this.style.transform = 'scale(1.01)';
+      });
+      
+      titleInput.addEventListener('blur', function() {
+        this.style.transform = 'scale(1)';
+      });
+    });
+  </script>
+</body>
+</html>
